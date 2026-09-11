@@ -1,0 +1,6 @@
+bin/
+obj/
+appsettings.json
+*.md
+.env
+secrets.json
