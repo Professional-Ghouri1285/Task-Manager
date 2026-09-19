@@ -30,6 +30,7 @@ public class TasksController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> Create(Guid projectId, TaskItem newTask)
     {
         newTask.ProjectId = projectId;
@@ -38,6 +39,7 @@ public class TasksController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> Update(Guid projectId, Guid id, TaskItem incomingTask)
     {
         if (id != incomingTask.Id) return BadRequest();
@@ -51,6 +53,7 @@ public class TasksController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> Delete(Guid projectId, Guid id)
     {
         var existing = await _taskService.GetById(id);
@@ -61,6 +64,7 @@ public class TasksController : ControllerBase
     }
 
     [HttpPut("{id:guid}/assign")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> Assign(Guid projectId, Guid id, [FromBody] Guid? userId)
     {
         var existing = await _taskService.GetById(id);

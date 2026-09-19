@@ -29,6 +29,7 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> Create(Guid organizationId, Project newProject)
     {
         newProject.OrganizationId = organizationId;
@@ -37,6 +38,7 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> Update(Guid organizationId, Guid id, Project incomingProject)
     {
         if (id != incomingProject.Id) return BadRequest();
@@ -50,6 +52,7 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(Guid organizationId, Guid id)
     {
         var existing = await _projectService.GetById(organizationId, id);
@@ -70,6 +73,7 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpPost("{projectId:guid}/members")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> AddMember(Guid organizationId, Guid projectId, [FromBody] Guid userId)
     {
         var project = await _projectService.GetById(organizationId, projectId);
@@ -80,6 +84,7 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpDelete("{projectId:guid}/members/{userId:guid}")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> RemoveMember(Guid organizationId, Guid projectId, Guid userId)
     {
         var project = await _projectService.GetById(organizationId, projectId);
@@ -90,6 +95,7 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpPut("{projectId:guid}/owner")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> ChangeOwner(Guid organizationId, Guid projectId, [FromBody] Guid newOwnerId)
     {
         var project = await _projectService.GetById(organizationId, projectId);
