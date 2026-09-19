@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManager.Models;
 using TaskManager.Services;
@@ -6,6 +7,7 @@ namespace TaskManager.Api.Controllers;
 
 [ApiController]
 [Route("api/organizations/{organizationId:guid}/projects")]
+[Authorize]
 public class ProjectsController : ControllerBase
 {
     private readonly IProjectService _projectService;

@@ -36,7 +36,9 @@ public class AppDbContext : DbContext
             entity.HasKey(u => u.Id);
             entity.Property(u => u.OrganizationId).IsRequired();
             entity.Property(u => u.Name).HasMaxLength(150).IsRequired();
+            entity.Property(u => u.Email).HasMaxLength(255).IsRequired();
             entity.Property(u => u.JobTitle).HasMaxLength(150);
+            entity.Property(u => u.PasswordHash).HasMaxLength(255).IsRequired();
             entity.Property(u => u.Role)
                 .HasMaxLength(20)
                 .IsRequired()
@@ -49,6 +51,7 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(u => new { u.OrganizationId, u.Id }).IsUnique();
+            entity.HasIndex(u => u.Email).IsUnique();
         });
 
         modelBuilder.Entity<Project>(entity =>

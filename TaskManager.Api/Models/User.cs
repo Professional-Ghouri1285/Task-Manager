@@ -13,8 +13,16 @@ public class User
     [MaxLength(150)]
     public string Name { get; set; } = string.Empty;
 
+    [Required]
+    [MaxLength(255)]
+    public string Email { get; set; } = string.Empty;
+
     [MaxLength(150)]
     public string? JobTitle { get; set; }
+
+    [Required]
+    [MaxLength(255)]
+    public string PasswordHash { get; set; } = string.Empty;
 
     [Required]
     [MaxLength(20)]
