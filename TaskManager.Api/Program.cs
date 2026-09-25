@@ -29,6 +29,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddAuthorization();
 
 builder.Services.AddOpenApi();
@@ -42,10 +53,16 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var projectService = scope.ServiceProvider.GetRequiredService<IProjectService>();
-    var taskService = scope.ServiceProvider.GetRequiredService<ITaskService>();
-    var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
-    var commentService = scope.ServiceProvider.GetRequiredService<ICommentService>();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    if (!db.Organizations.Any())
+    {
+        db.Organizations.Add(new TaskManager.Models.Organization
+        {
+            Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            Name = "Acme Corporation"
+        });
+        db.SaveChanges();
+    }
 }
 
 if (app.Environment.IsDevelopment())
@@ -54,9 +71,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseDefaultFiles();
+app.UseStaticFiles();
+app.UseCors("AllowAll");
 
 // IMPORTANT: UseAuthentication must come BEFORE UseAuthorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapControllers();
 
 app.Run();

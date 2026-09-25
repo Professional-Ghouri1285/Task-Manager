@@ -25,7 +25,9 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("organizations");
             entity.HasKey(o => o.Id);
+            entity.Property(o => o.Id).HasColumnName("id");
             entity.Property(o => o.Name)
+                .HasColumnName("name")
                 .HasMaxLength(150)
                 .IsRequired();
         });
@@ -34,12 +36,14 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("users");
             entity.HasKey(u => u.Id);
-            entity.Property(u => u.OrganizationId).IsRequired();
-            entity.Property(u => u.Name).HasMaxLength(150).IsRequired();
-            entity.Property(u => u.Email).HasMaxLength(255).IsRequired();
-            entity.Property(u => u.JobTitle).HasMaxLength(150);
-            entity.Property(u => u.PasswordHash).HasMaxLength(255).IsRequired();
+            entity.Property(u => u.Id).HasColumnName("id");
+            entity.Property(u => u.OrganizationId).HasColumnName("organization_id").IsRequired();
+            entity.Property(u => u.Name).HasColumnName("name").HasMaxLength(150).IsRequired();
+            entity.Property(u => u.Email).HasColumnName("Email").HasMaxLength(255).IsRequired();
+            entity.Property(u => u.JobTitle).HasColumnName("job_title").HasMaxLength(150);
+            entity.Property(u => u.PasswordHash).HasColumnName("PasswordHash").HasMaxLength(255).IsRequired();
             entity.Property(u => u.Role)
+                .HasColumnName("role")
                 .HasMaxLength(20)
                 .IsRequired()
                 .HasConversion<string>()
@@ -58,20 +62,24 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("projects");
             entity.HasKey(p => p.Id);
-            entity.Property(p => p.OrganizationId).IsRequired();
-            entity.Property(p => p.OwnerId).IsRequired();
-            entity.Property(p => p.Name).HasMaxLength(200).IsRequired();
-            entity.Property(p => p.Description).HasColumnType("text");
+            entity.Property(p => p.Id).HasColumnName("id");
+            entity.Property(p => p.OrganizationId).HasColumnName("organization_id").IsRequired();
+            entity.Property(p => p.OwnerId).HasColumnName("owner_id").IsRequired();
+            entity.Property(p => p.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+            entity.Property(p => p.Description).HasColumnName("description").HasColumnType("text");
             entity.Property(p => p.Status)
+                .HasColumnName("status")
                 .HasMaxLength(30)
                 .IsRequired()
                 .HasConversion<string>()
                 .HasDefaultValue(ProjectStatus.Active);
             entity.Property(p => p.CreatedAt)
+                .HasColumnName("created_at")
                 .HasDefaultValueSql("now()")
                 .ValueGeneratedOnAdd()
                 .IsRequired();
             entity.Property(p => p.UpdatedAt)
+                .HasColumnName("updated_at")
                 .HasDefaultValueSql("now()")
                 .ValueGeneratedOnAddOrUpdate()
                 .IsRequired();
@@ -91,10 +99,12 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("tasks");
             entity.HasKey(t => t.Id);
-            entity.Property(t => t.ProjectId).IsRequired();
-            entity.Property(t => t.AssignedToId);
-            entity.Property(t => t.Description).HasColumnType("text").IsRequired();
+            entity.Property(t => t.Id).HasColumnName("id");
+            entity.Property(t => t.ProjectId).HasColumnName("project_id").IsRequired();
+            entity.Property(t => t.AssignedToId).HasColumnName("assigned_to_id");
+            entity.Property(t => t.Description).HasColumnName("description").HasColumnType("text").IsRequired();
             entity.Property(t => t.Status)
+                .HasColumnName("status")
                 .HasMaxLength(30)
                 .IsRequired()
                 .HasConversion(
@@ -102,16 +112,19 @@ public class AppDbContext : DbContext
                     v => v == "In Progress" ? global::TaskManager.Models.TaskStatus.InProgress : Enum.Parse<global::TaskManager.Models.TaskStatus>(v))
                 .HasDefaultValue(global::TaskManager.Models.TaskStatus.Todo);
             entity.Property(t => t.Priority)
+                .HasColumnName("priority")
                 .HasMaxLength(20)
                 .IsRequired()
                 .HasConversion<string>()
                 .HasDefaultValue(global::TaskManager.Models.TaskPriority.Medium);
-            entity.Property(t => t.DueDate).HasColumnType("timestamptz");
+            entity.Property(t => t.DueDate).HasColumnName("due_date").HasColumnType("timestamptz");
             entity.Property(t => t.CreatedAt)
+                .HasColumnName("created_at")
                 .HasDefaultValueSql("now()")
                 .ValueGeneratedOnAdd()
                 .IsRequired();
             entity.Property(t => t.UpdatedAt)
+                .HasColumnName("updated_at")
                 .HasDefaultValueSql("now()")
                 .ValueGeneratedOnAddOrUpdate()
                 .IsRequired();
@@ -131,10 +144,12 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("comments");
             entity.HasKey(c => c.Id);
-            entity.Property(c => c.TaskId).IsRequired();
-            entity.Property(c => c.AuthorId).IsRequired();
-            entity.Property(c => c.Description).HasColumnType("text").IsRequired();
+            entity.Property(c => c.Id).HasColumnName("id");
+            entity.Property(c => c.TaskId).HasColumnName("task_id").IsRequired();
+            entity.Property(c => c.AuthorId).HasColumnName("author_id").IsRequired();
+            entity.Property(c => c.Description).HasColumnName("description").HasColumnType("text").IsRequired();
             entity.Property(c => c.CreatedAt)
+                .HasColumnName("created_at")
                 .HasDefaultValueSql("now()")
                 .ValueGeneratedOnAdd()
                 .IsRequired();
@@ -154,8 +169,8 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("project_members");
             entity.HasKey(pm => new { pm.ProjectId, pm.UserId });
-            entity.Property(pm => pm.ProjectId).IsRequired();
-            entity.Property(pm => pm.UserId).IsRequired();
+            entity.Property(pm => pm.ProjectId).HasColumnName("project_id").IsRequired();
+            entity.Property(pm => pm.UserId).HasColumnName("user_id").IsRequired();
 
             entity.HasOne(pm => pm.Project)
                 .WithMany(p => p.Members)
