@@ -1,0 +1,1107 @@
+{
+  "info": {
+    "_postman_id": "taskmanager-api-collection",
+    "name": "TaskManager API",
+    "description": "Postman/Newman collection covering Auth, Projects, Tasks, and expected error cases.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5059" },
+    { "key": "token", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "managerToken", "value": "" },
+    { "key": "memberToken", "value": "" },
+    { "key": "organizationId", "value": "11111111-1111-1111-1111-111111111111" },
+    { "key": "adminUserId", "value": "11111111-1111-1111-1111-111111111101" },
+    { "key": "managerUserId", "value": "11111111-1111-1111-1111-111111111102" },
+    { "key": "memberUserId", "value": "11111111-1111-1111-1111-111111111103" },
+    { "key": "projectId", "value": "" },
+    { "key": "taskId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "00 - Auth",
+      "item": [
+        {
+          "name": "Login - Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Token present', function () { pm.expect(pm.response.json().token).to.be.a('string'); });",
+                  "pm.environment.set('adminToken', pm.response.json().token);",
+                  "pm.environment.set('token', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.local\",\n  \"password\": \"AdminPass123!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Login - Manager",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Token present', function () { pm.expect(pm.response.json().token).to.be.a('string'); });",
+                  "pm.environment.set('managerToken', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manager@test.local\",\n  \"password\": \"ManagerPass123!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Login - Member",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Token present', function () { pm.expect(pm.response.json().token).to.be.a('string'); });",
+                  "pm.environment.set('memberToken', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"member@test.local\",\n  \"password\": \"MemberPass123!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Login - Invalid Credentials",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('Error message present', function () {",
+                  "    pm.expect(pm.response.json().error).to.eql('Invalid credentials');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.local\",\n  \"password\": \"WrongPassword!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Register - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Response has user and token', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.userId).to.be.a('string');",
+                  "    pm.expect(json.token).to.be.a('string');",
+                  "    pm.expect(json.email).to.include('newuser_auto_');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser_auto_{{$randomInt}}@test.local\",\n  \"password\": \"NewPass123!\",\n  \"name\": \"Auto User {{$randomInt}}\",\n  \"organizationId\": \"{{organizationId}}\",\n  \"jobTitle\": \"Tester\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Register - Duplicate Email (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Error: email already registered', function () {",
+                  "    pm.expect(pm.response.json().error).to.eql('Email already registered');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.local\",\n  \"password\": \"AnotherPass123!\",\n  \"name\": \"Duplicate\",\n  \"organizationId\": \"{{organizationId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Setup",
+      "item": [
+        {
+          "name": "Create Test Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "var json = pm.response.json();",
+                  "pm.environment.set('projectId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Test Project\",\n  \"description\": \"Created by Postman\",\n  \"status\": 0,\n  \"ownerId\": \"{{adminUserId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Projects CRUD",
+      "item": [
+        {
+          "name": "Get All Projects",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Response is an array', function () { pm.expect(pm.response.json()).to.be.an('array'); });",
+                  "pm.test('Project list contains created project', function () {",
+                  "    var ids = pm.response.json().map(function (p) { return p.id; });",
+                  "    pm.expect(ids).to.include(pm.environment.get('projectId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects"] }
+          }
+        },
+        {
+          "name": "Get Project By Id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Project fields persisted', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.id).to.eql(pm.environment.get('projectId'));",
+                  "    pm.expect(json.name).to.eql('Postman Test Project');",
+                  "    pm.expect(json.status).to.eql(0);",
+                  "    pm.expect(json.ownerId).to.eql(pm.environment.get('adminUserId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{projectId}}"] }
+          }
+        },
+        {
+          "name": "Update Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Updated fields persisted', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.name).to.eql('Postman Updated Project');",
+                  "    pm.expect(json.status).to.eql(1);",
+                  "    pm.expect(json.description).to.eql('Updated by Postman');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{projectId}}\",\n  \"name\": \"Postman Updated Project\",\n  \"description\": \"Updated by Postman\",\n  \"status\": 1\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{projectId}}"] }
+          }
+        },
+        {
+          "name": "Add Member (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "\"{{memberUserId}}\""
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{projectId}}/members", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{projectId}}", "members"] }
+          }
+        },
+        {
+          "name": "Get Members",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Members array contains added member', function () {",
+                  "    var ids = pm.response.json().map(function (m) { return m.userId; });",
+                  "    pm.expect(ids).to.include(pm.environment.get('memberUserId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{projectId}}/members", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{projectId}}", "members"] }
+          }
+        },
+        {
+          "name": "Change Owner",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Owner changed', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.ownerId).to.eql(pm.environment.get('managerUserId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "\"{{managerUserId}}\""
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{projectId}}/owner", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{projectId}}", "owner"] }
+          }
+        },
+        {
+          "name": "Remove Member",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{projectId}}/members/{{memberUserId}}", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{projectId}}", "members", "{{memberUserId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Projects Error Cases",
+      "item": [
+        {
+          "name": "Create Project - Unauthorized (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"No Auth Project\",\n  \"status\": 0,\n  \"ownerId\": \"{{adminUserId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects"] }
+          }
+        },
+        {
+          "name": "Create Project - Member Forbidden (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 403', function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{memberToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Member Project\",\n  \"status\": 0,\n  \"ownerId\": \"{{adminUserId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects"] }
+          }
+        },
+        {
+          "name": "Get Non-existent Project (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/00000000-0000-0000-0000-000000000000", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "00000000-0000-0000-0000-000000000000"] }
+          }
+        },
+        {
+          "name": "Delete Project - Wrong Organization (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizations/00000000-0000-0000-0000-000000000000/projects/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "00000000-0000-0000-0000-000000000000", "projects", "{{projectId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Tasks CRUD",
+      "item": [
+        {
+          "name": "Create Task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "var json = pm.response.json();",
+                  "pm.environment.set('taskId', json.id);",
+                  "pm.test('Task returned with correct fields', function () {",
+                  "    pm.expect(json.id).to.be.a('string');",
+                  "    pm.expect(json.description).to.eql('Postman Test Task');",
+                  "    pm.expect(json.status).to.eql(0);",
+                  "    pm.expect(json.priority).to.eql(1);",
+                  "    pm.expect(json.projectId).to.eql(pm.environment.get('projectId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": \"{{projectId}}\",\n  \"description\": \"Postman Test Task\",\n  \"status\": 0,\n  \"priority\": 1,\n  \"assignedToId\": null\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks"] }
+          }
+        },
+        {
+          "name": "Get All Tasks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Response is array containing created task', function () {",
+                  "    var ids = pm.response.json().map(function (t) { return t.id; });",
+                  "    pm.expect(ids).to.include(pm.environment.get('taskId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks"] }
+          }
+        },
+        {
+          "name": "Get Task By Id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Task fields correct', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.id).to.eql(pm.environment.get('taskId'));",
+                  "    pm.expect(json.description).to.eql('Postman Test Task');",
+                  "    pm.expect(json.projectId).to.eql(pm.environment.get('projectId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/{{taskId}}", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "{{taskId}}"] }
+          }
+        },
+        {
+          "name": "Update Task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Updated fields persisted', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.description).to.eql('Postman Updated Task');",
+                  "    pm.expect(json.status).to.eql(1);",
+                  "    pm.expect(json.priority).to.eql(2);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{taskId}}\",\n  \"description\": \"Postman Updated Task\",\n  \"status\": 1,\n  \"priority\": 2\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/{{taskId}}", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "{{taskId}}"] }
+          }
+        },
+        {
+          "name": "Assign Task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Task assigned', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.assignedToId).to.eql(pm.environment.get('memberUserId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "\"{{memberUserId}}\""
+            },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/{{taskId}}/assign", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "{{taskId}}", "assign"] }
+          }
+        },
+        {
+          "name": "Change Task Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Status updated', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(2);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "2"
+            },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/{{taskId}}/status", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "{{taskId}}", "status"] }
+          }
+        },
+        {
+          "name": "Delete Task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/{{taskId}}", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "{{taskId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Tasks Error Cases",
+      "item": [
+        {
+          "name": "Create Task - Unauthorized (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": \"{{projectId}}\",\n  \"description\": \"No Auth Task\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks"] }
+          }
+        },
+        {
+          "name": "Get Task - Not Found (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/00000000-0000-0000-0000-000000000000", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "00000000-0000-0000-0000-000000000000"] }
+          }
+        },
+        {
+          "name": "Update Task - Wrong Project (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{taskId}}\",\n  \"description\": \"Bad project task\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/projects/00000000-0000-0000-0000-000000000000/tasks/{{taskId}}", "host": ["{{baseUrl}}"], "path": ["api", "projects", "00000000-0000-0000-0000-000000000000", "tasks", "{{taskId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Database Behavior (API-Verified)",
+      "item": [
+        {
+          "name": "Create Project persists fields",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "var json = pm.response.json();",
+                  "pm.environment.set('dbProjectId', json.id);",
+                  "pm.test('GET by id returns persisted fields', function () {",
+                  "    pm.expect(json.name).to.eql('DB Persist Project');",
+                  "    pm.expect(json.status).to.eql(2);",
+                  "    pm.expect(json.ownerId).to.eql(pm.environment.get('adminUserId'));",
+                  "    pm.expect(json.organizationId).to.eql(pm.environment.get('organizationId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"DB Persist Project\",\n  \"status\": 2,\n  \"ownerId\": \"{{adminUserId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects"] }
+          }
+        },
+        {
+          "name": "Verify Project by Id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Fields persisted correctly', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.id).to.eql(pm.environment.get('dbProjectId'));",
+                  "    pm.expect(json.name).to.eql('DB Persist Project');",
+                  "    pm.expect(json.status).to.eql(2);",
+                  "    pm.expect(json.ownerId).to.eql(pm.environment.get('adminUserId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{dbProjectId}}", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{dbProjectId}}"] }
+          }
+        },
+        {
+          "name": "Update Project persists fields",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Updated fields persisted', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.name).to.eql('DB Persist Project UPDATED');",
+                  "    pm.expect(json.status).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{dbProjectId}}\",\n  \"name\": \"DB Persist Project UPDATED\",\n  \"status\": 1\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{dbProjectId}}", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{dbProjectId}}"] }
+          }
+        },
+        {
+          "name": "Create Task and verify in list",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "if (!pm.environment.get('dbProjectId')) {",
+                  "    throw 'dbProjectId is required';",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "var json = pm.response.json();",
+                  "pm.environment.set('dbTaskId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": \"{{dbProjectId}}\",\n  \"description\": \"DB Task Verify\",\n  \"status\": 0,\n  \"priority\": 3\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{dbProjectId}}/tasks", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{dbProjectId}}", "tasks"] }
+          }
+        },
+        {
+          "name": "Get All Tasks verifies persisted task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.test('List contains created task', function () {",
+                  "    var match = json.find(function (t) { return t.description === 'DB Task Verify'; });",
+                  "    pm.expect(match).to.be.an('object');",
+                  "    pm.expect(match.projectId).to.eql(pm.environment.get('dbProjectId'));",
+                  "    pm.expect(match.status).to.eql(0);",
+                  "    pm.expect(match.priority).to.eql(3);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{dbProjectId}}/tasks", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{dbProjectId}}", "tasks"] }
+          }
+        },
+        {
+          "name": "Delete Task removes from list",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{dbProjectId}}/tasks/{{dbTaskId}}", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{dbProjectId}}", "tasks", "{{dbTaskId}}"] }
+          }
+        },
+        {
+          "name": "Verify deleted task not in list",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.test('Deleted task absent from list', function () {",
+                  "    var ids = json.map(function (t) { return t.id; });",
+                  "    pm.expect(ids).to.not.include(pm.environment.get('dbTaskId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{dbProjectId}}/tasks", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{dbProjectId}}", "tasks"] }
+          }
+        },
+        {
+          "name": "Membership add then remove",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "\"{{memberUserId}}\""
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{dbProjectId}}/members", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{dbProjectId}}", "members"] }
+          }
+        },
+        {
+          "name": "Get Members verifies membership",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Members contains member user', function () {",
+                  "    var ids = pm.response.json().map(function (m) { return m.userId; });",
+                  "    pm.expect(ids).to.include(pm.environment.get('memberUserId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{dbProjectId}}/members", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{dbProjectId}}", "members"] }
+          }
+        },
+        {
+          "name": "Remove Member",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{dbProjectId}}/members/{{memberUserId}}", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{dbProjectId}}", "members", "{{memberUserId}}"] }
+          }
+        },
+        {
+          "name": "Verify member removed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Member absent from list', function () {",
+                  "    var ids = pm.response.json().map(function (m) { return m.userId; });",
+                  "    pm.expect(ids).to.not.include(pm.environment.get('memberUserId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{dbProjectId}}/members", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{dbProjectId}}", "members"] }
+          }
+        },
+        {
+          "name": "Add duplicate member (idempotent/204)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "\"{{memberUserId}}\""
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{dbProjectId}}/members", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{dbProjectId}}", "members"] }
+          }
+        },
+        {
+          "name": "Remove non-existent member (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{dbProjectId}}/members/00000000-0000-0000-0000-000000000000", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{dbProjectId}}", "members", "00000000-0000-0000-0000-000000000000"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Cleanup",
+      "item": [
+        {
+          "name": "Delete DB Test Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{dbProjectId}}", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{dbProjectId}}"] }
+          }
+        },
+        {
+          "name": "Delete Main Test Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizations/{{organizationId}}/projects/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["api", "organizations", "{{organizationId}}", "projects", "{{projectId}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}

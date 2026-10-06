@@ -1,0 +1,41 @@
+# Build results
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.exe
+*.pdb
+*.log
+
+# Test results
+TestResults/
+*.trx
+*.html
+
+# Generated reports
+newman-report.html
+newman-report.json
+playwright-report.html
+
+# IDE
+.vs/
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+appsettings.json
+*.env
+secrets.json
+
+# Temporary scripts
+seed.sh
+generate_report.py
+
+# Isolate files
+Isolate*.cs

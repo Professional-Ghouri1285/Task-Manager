@@ -1,0 +1,7 @@
+bin/
+obj/
+*.md
+secrets.json
+playwright-.zip
+test-results/
+coverage/
